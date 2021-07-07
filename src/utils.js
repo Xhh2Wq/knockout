@@ -102,32 +102,28 @@ ko.utils = (function () {
         fieldsIncludedWithJsonPost: ['authenticity_token', /^__RequestVerificationToken(_.*)?$/],
 
         arrayForEach: function (array, action, actionOwner) {
-            if (array && typeof array.forEach == 'function') {
-                array.forEach(action, actionOwner);
-            } else {
-                for (var i = 0, j = array.length; i < j; i++) {
-                    action.call(actionOwner, array[i], i, array);
-                }
+            for (var i = 0, j = array.length; i < j; i++) {
+                action.call(actionOwner, array[i], i, array);
             }
         },
 
-        arrayIndexOf: function (array, item) {
-            if (array && typeof array.indexOf == 'function') {
-                return array.indexOf(item);
+        arrayIndexOf: typeof Array.prototype.indexOf == "function"
+            ? function (array, item) {
+                return Array.prototype.indexOf.call(array, item);
             }
-            for (var i = 0, j = array.length; i < j; i++)
-                if (array[i] === item)
-                    return i;
-            return -1;
-        },
+            : function (array, item) {
+                for (var i = 0, j = array.length; i < j; i++) {
+                    if (array[i] === item)
+                        return i;
+                }
+                return -1;
+            },
 
         arrayFirst: function (array, predicate, predicateOwner) {
-            if (array && typeof array.find == 'function') {
-                return array.find(predicate, predicateOwner);
-            }
-            for (var i = 0, j = array.length; i < j; i++)
+            for (var i = 0, j = array.length; i < j; i++) {
                 if (predicate.call(predicateOwner, array[i], i, array))
                     return array[i];
+            }
             return undefined;
         },
 
@@ -142,36 +138,32 @@ ko.utils = (function () {
         },
 
         arrayGetDistinctValues: function (array) {
-            array = array || [];
             var result = [];
-            ko.utils.arrayForEach(array, function(item) {
-                if (ko.utils.arrayIndexOf(result, item) < 0)
-                    result.push(item);
-            });
-
+            if (array) {
+                ko.utils.arrayForEach(array, function(item) {
+                    if (ko.utils.arrayIndexOf(result, item) < 0)
+                        result.push(item);
+                });
+            }
             return result;
         },
 
         arrayMap: function (array, mapping, mappingOwner) {
-            if (array && typeof array.map == 'function') {
-                return array.map(mapping, mappingOwner);
-            }
-            array = array || [];
             var result = [];
-            for (var i = 0, j = array.length; i < j; i++)
-                result.push(mapping.call(mappingOwner, array[i], i));
+            if (array) {
+                for (var i = 0, j = array.length; i < j; i++)
+                    result.push(mapping.call(mappingOwner, array[i], i));
+            }
             return result;
         },
 
         arrayFilter: function (array, predicate, predicateOwner) {
-            if (array && typeof array.filter == 'function') {
-                return array.filter(predicate, predicateOwner);
-            }
-            array = array || [];
             var result = [];
-            for (var i = 0, j = array.length; i < j; i++)
-                if (predicate.call(predicateOwner, array[i], i))
-                    result.push(array[i]);
+            if (array) {
+                for (var i = 0, j = array.length; i < j; i++)
+                    if (predicate.call(predicateOwner, array[i], i))
+                        result.push(array[i]);
+            }
             return result;
         },
 
@@ -404,8 +396,7 @@ ko.utils = (function () {
                 ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
                     element.detachEvent(attachEventName, attachEventHandler);
                 });
-            } else
-                throw new Error("Browser doesn't support addEventListener or attachEvent");
+            }
         },
 
         triggerEvent: function (element, eventType) {
@@ -474,7 +465,8 @@ ko.utils = (function () {
             // - http://www.matts411.com/post/setting_the_name_attribute_in_ie_dom/
             if (ieVersion <= 7) {
                 try {
-                    element.mergeAttributes(document.createElement("<input name='" + element.name + "'/>"), false);
+                    var escapedName = element.name.replace(/[&<>'"]/g, function(r){ return "&#" + r.charCodeAt(0) + ";"; });
+                    element.mergeAttributes(document.createElement("<input name='" + escapedName + "'/>"), false);
                 }
                 catch(e) {} // For IE9 with doc mode "IE9 Standards" and browser mode "IE9 Compatibility View"
             }
@@ -610,6 +602,8 @@ ko.exportSymbol('utils.arrayIndexOf', ko.utils.arrayIndexOf);
 ko.exportSymbol('utils.arrayMap', ko.utils.arrayMap);
 ko.exportSymbol('utils.arrayPushAll', ko.utils.arrayPushAll);
 ko.exportSymbol('utils.arrayRemoveItem', ko.utils.arrayRemoveItem);
+ko.exportSymbol('utils.cloneNodes', ko.utils.cloneNodes);
+ko.exportSymbol('utils.createSymbolOrString', ko.utils.createSymbolOrString);
 ko.exportSymbol('utils.extend', ko.utils.extend);
 ko.exportSymbol('utils.fieldsIncludedWithJsonPost', ko.utils.fieldsIncludedWithJsonPost);
 ko.exportSymbol('utils.getFormFields', ko.utils.getFormFields);

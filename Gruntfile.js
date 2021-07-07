@@ -34,6 +34,10 @@ module.exports = function(grunt) {
         test: {
             phantomjs: 'spec/runner.phantom.js',
             node: 'spec/runner.node.js'
+        },
+        testtypes: {
+            global: "spec/types/global",
+            module: "spec/types/module"
         }
     });
 
@@ -151,6 +155,24 @@ module.exports = function(grunt) {
         );
     });
 
+    grunt.registerMultiTask('testtypes', 'Run types tests', function () {
+        var done = this.async(),
+            target = this.target;
+
+        grunt.util.spawn({ cmd: "tsc", args: ["-p", this.data] },
+            function (error, result, code) {
+                grunt.log.writeln(result.stdout);
+
+                if (error)
+                    grunt.log.error(result.stderr);
+                else
+                    grunt.log.ok("Knockout TypeScript " + target + " types validated!");
+
+                done(!error);
+            }
+        );
+    });
+
     grunt.registerTask('dist', function() {
         var version = grunt.config('pkg.version'),
             buildConfig = grunt.config('build'),
@@ -159,7 +181,6 @@ module.exports = function(grunt) {
         grunt.file.copy(buildConfig.min, distConfig.min);
 
         console.log('To publish, run:');
-        console.log('    git add bower.json');
         console.log('    git add -f ' + distConfig.debug);
         console.log('    git add -f ' + distConfig.min);
         console.log('    git checkout head');
@@ -170,5 +191,5 @@ module.exports = function(grunt) {
     });
 
     // Default task.
-    grunt.registerTask('default', ['clean', 'checktrailingspaces', 'build', 'test']);
+    grunt.registerTask('default', ['clean', 'checktrailingspaces', 'build', 'test', 'testtypes']);
 };

@@ -118,7 +118,7 @@ describe('Pure Computed', function() {
         // Accessing the computed evaluates it
         expect(computed()).toEqual('A');
 
-        // No subscription is registered on the depenedent observable
+        // No subscription is registered on the dependent observable
         expect(data.getSubscriptionsCount()).toEqual(0);
 
         // getDependenciesCount returns the correct number
@@ -162,7 +162,7 @@ describe('Pure Computed', function() {
         expect(notifiedValues).toEqual(['B']);
     });
 
-    it('Should go back to sleep when all subcriptions are disposed', function() {
+    it('Should go back to sleep when all subscriptions are disposed', function() {
         var data = ko.observable('A'),
             computed = ko.pureComputed(data),
             subscription = computed.subscribe(function () {});
@@ -380,6 +380,23 @@ describe('Pure Computed', function() {
         subscription = isEven.subscribe(function() {});
         expect(pureComputed()).toEqual(false);
         expect(timesEvaluated).toEqual(2);
+    });
+
+    it('Should wake with the correct value when a chained pure computed has side effects for its awake event', function () {
+        var observableToUpdateOnAwake = ko.observable(null),
+            computed1 = ko.pureComputed(observableToUpdateOnAwake),
+            computed2 = ko.pureComputed(computed1);
+
+        computed1.subscribe(function () {
+            observableToUpdateOnAwake('foo');
+        }, null, 'awake');
+
+        // Reading from the computed before subscribing caused the subscription to
+        // ignore side-effects from the awake callback of chained pure computeds
+        computed2();
+
+        computed2.subscribe(function () {});
+        expect(computed2()).toEqual('foo');
     });
 
     describe('Should maintain order of subscriptions', function () {

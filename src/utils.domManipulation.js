@@ -19,7 +19,7 @@
         mayRequireCreateElementHack = ko.utils.ieVersion <= 8;
 
     function getWrap(tags) {
-        var m = tags.match(/^<([a-z]+)[ >]/);
+        var m = tags.match(/^(?:<!--.*?-->\s*?)*?<([a-z]+)[\s>]/);
         return (m && lookup[m[1]]) || none;
     }
 
@@ -52,7 +52,7 @@
             if (mayRequireCreateElementHack) {
                 // The document.createElement('my-element') trick to enable custom elements in IE6-8
                 // only works if we assign innerHTML on an element associated with that document.
-                documentContext.appendChild(div);
+                documentContext.body.appendChild(div);
             }
 
             div.innerHTML = markup;
